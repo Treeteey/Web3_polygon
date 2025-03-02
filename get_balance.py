@@ -1,18 +1,18 @@
 
 from web3 import Web3
-from const import WRONG_OUTPUT
+from const import WRONG_OUTPUT, INFURA_API, CONTRACT_ADDRESS
 
 
 def CreateToken():
     # Connect to Polygon network via Infura
     # ADD YOUR INFURA API KEY HERE
-    infura_api = 'd63e86ddbad24ba99e54bbb90befdd64'
-    infura_url = f'https://polygon-mainnet.infura.io/v3/{infura_api}'
+
+    infura_url = f'https://polygon-mainnet.infura.io/v3/{INFURA_API}'
     w3 = Web3(Web3.HTTPProvider(infura_url))
 
     # Token contract address
-    contract_address = '0x1a9b54a3075119f1546c52ca0940551a6ce5d2d0'
-    checksum_address = Web3.to_checksum_address(contract_address)
+    
+    checksum_address = Web3.to_checksum_address(CONTRACT_ADDRESS)
 
     # Generic ERC20 ABI
     erc20_abi = [
