@@ -4,7 +4,8 @@ import time
 import glob
 import shutil  # Used for deleting the folder
 import csv
-import re  # ✅ Import regex module
+import re  # Import regex module
+import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.firefox.service import Service as FirefoxService
@@ -16,7 +17,7 @@ from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.firefox import GeckoDriverManager
 from webdriver_manager.microsoft import EdgeChromiumDriverManager
-
+from const import POLYGONSCAN_API_KEY
 
 def find_browser():
     """Check for available browsers on Windows and Linux."""
@@ -35,7 +36,7 @@ def find_browser():
             "yandex": "/usr/bin/yandex-browser"
         }
     else:
-        print("❌ Unsupported OS. This script only works on Windows and Linux.")
+        print(" Unsupported OS. This script only works on Windows and Linux.")
         sys.exit(1)
 
     for browser, path in possible_browsers.items():
@@ -50,7 +51,7 @@ def get_driver():
     """Get WebDriver for the available browser."""
     browser, binary_path = find_browser()
 
-    # ✅ Set OS-specific download directory
+    # Set OS-specific download directory
     if sys.platform.startswith("win"):
         download_dir = os.path.join(os.getcwd(), "top_accounts")
     elif sys.platform.startswith("linux"):
@@ -60,7 +61,7 @@ def get_driver():
         os.makedirs(download_dir)
 
     if not browser:
-        print("❌ No supported browser found. Please install Chrome, Edge, Firefox, or Yandex Browser.")
+        print(" No supported browser found. Please install Chrome, Edge, Firefox, or Yandex Browser.")
         sys.exit(1)
 
     print(f"✅ Using {browser.capitalize()} browser...")
@@ -72,7 +73,7 @@ def get_driver():
         options = webdriver.ChromeOptions()
         options.binary_location = binary_path
 
-        # ✅ Set custom download folder
+        # Set custom download folder
         prefs = {"download.default_directory": download_dir}
         options.add_experimental_option("prefs", prefs)
 
@@ -92,7 +93,7 @@ def get_driver():
         options = webdriver.FirefoxOptions()
         options.binary_location = binary_path
 
-        # ✅ Set custom download folder for Firefox
+        # Set custom download folder for Firefox
         profile = webdriver.FirefoxProfile()
         profile.set_preference("browser.download.folderList", 2)  # Use custom folder
         profile.set_preference("browser.download.dir", download_dir)
@@ -112,7 +113,7 @@ def get_driver():
         driver = webdriver.Chrome(service=service, options=options)
 
     else:
-        print("❌ No supported browser found.")
+        print(" No supported browser found.")
         sys.exit(1)
 
     return driver
@@ -133,14 +134,14 @@ def DownloadCSV(num_accounts, pages=None):
     - If pages=None, download all pages required for num_accounts.
     - If pages is a list, download only missing pages.
     """
-    driver = get_driver()  # ✅ Browser is now visible
+    driver = get_driver()  # Browser is now visible
     download_dir = os.path.join(os.getcwd(), "top_accounts")
 
     accounts_per_page = 100
     num_pages = (num_accounts + accounts_per_page - 1) // accounts_per_page  # Round up
 
     if pages is None:
-        pages = range(1, num_pages + 1)  # ✅ Download all pages
+        pages = range(1, num_pages + 1)  # Download all pages
 
     print(f"✅ Need to download {len(pages)} pages for {num_accounts} accounts.")
 
@@ -170,7 +171,7 @@ def DownloadCSV(num_accounts, pages=None):
                 if latest_file:
                     new_filename = os.path.join(download_dir, f"export-accounts-{page}.csv")
 
-                    # ✅ Fix: Remove existing file before renaming
+                    # Fix: Remove existing file before renaming
                     if os.path.exists(new_filename):
                         os.remove(new_filename)
 
@@ -178,11 +179,11 @@ def DownloadCSV(num_accounts, pages=None):
                     print(f"✅ Renamed file to {new_filename}")
 
             except TimeoutException:
-                print(f"❌ Error: 'Download Page Data' button not found on page {page}.")
+                print(f" Error: 'Download Page Data' button not found on page {page}.")
                 continue
 
         except NoSuchElementException:
-            print(f"❌ Error: Page structure changed. Could not find elements on page {page}.")
+            print(f" Error: Page structure changed. Could not find elements on page {page}.")
 
     print("✅ All downloads completed!")
     driver.quit()
@@ -197,21 +198,21 @@ def get_top(N):
     """
     download_dir = os.path.join(os.getcwd(), "top_accounts")
 
-    # ✅ If folder doesn't exist, create it
+    # If folder doesn't exist, create it
     if not os.path.exists(download_dir):
         os.makedirs(download_dir)
 
-    # ✅ Check if files exist
+    # Check if files exist
     csv_files = sorted([f for f in os.listdir(download_dir) if f.endswith(".csv")])
 
     if csv_files:
-        # ✅ Check if files were modified in the last 5 minutes
+        # Check if files were modified in the last 5 minutes
         newest_file = max([os.path.getmtime(os.path.join(download_dir, f)) for f in csv_files])
         file_age_minutes = (time.time() - newest_file) / 60
 
         if file_age_minutes > 5:
             print("🕒 CSV files are older than 5 minutes. Downloading fresh data...")
-            shutil.rmtree(download_dir)  # ✅ Delete old files
+            shutil.rmtree(download_dir)  # Delete old files
             os.makedirs(download_dir)
             DownloadCSV(N)
         else:
@@ -221,10 +222,10 @@ def get_top(N):
         print("🚀 No existing files found. Downloading fresh data...")
         DownloadCSV(N)
 
-    # ✅ Refresh CSV list after downloading
+    # Refresh CSV list after downloading
     csv_files = sorted([f for f in os.listdir(download_dir) if f.endswith(".csv")])
 
-    # ✅ Extract existing pages from fresh file list
+    # Extract existing pages from fresh file list
     existing_pages = {int(f.split("-")[-1].split(".")[0]) for f in csv_files} if csv_files else set()
     required_pages = set(range(1, (N + 99) // 100 + 1))
 
@@ -234,7 +235,7 @@ def get_top(N):
         print(f"📌 Missing pages: {sorted(missing_pages)}. Downloading only missing pages...")
         DownloadCSV(N, pages=list(missing_pages))
 
-    # ✅ Now process all CSV files
+    # Now process all CSV files
     account_balances = []
 
     csv_files = sorted([f for f in os.listdir(download_dir) if f.endswith(".csv")])
@@ -245,13 +246,13 @@ def get_top(N):
 
         with open(file_path, newline='', encoding='utf-8') as csvfile:
             reader = csv.reader(csvfile)
-            next(reader, None)  # ✅ Skip header
+            next(reader, None)  # Skip header
 
             for row in reader:
                 if len(row) < 3:
                     continue
 
-                address = row[1].strip()
+                address = row[0].strip()
                 balance_str = row[2].replace(",", "").strip()
 
                 match = re.search(r"\d+(\.\d+)?", balance_str)
@@ -260,20 +261,68 @@ def get_top(N):
                         balance = float(match.group())
                         account_balances.append((address, balance))
                     except ValueError:
-                        print(f"❌ Error converting balance '{balance_str}'. Skipping...")
+                        print(f" Error converting balance '{balance_str}'. Skipping...")
                         continue
                 else:
                     print(f"⚠️ No valid number found in '{balance_str}'. Skipping...")
 
-    # ✅ Sort by balance and return the top N
+    # Sort by balance and return the top N
     top_accounts = sorted(account_balances, key=lambda x: x[1], reverse=True)[:N]
 
     return top_accounts
 
 
+def get_last_transaction_timestamp(address):
+    """Fetch the timestamp of the last transaction for a given address from PolygonScan."""
+    url = "https://api.polygonscan.com/api"
+    
+    params = {
+        "module": "account",
+        "action": "txlist",
+        "address": address,
+        "startblock": 0,
+        "endblock": 99999999,
+        "page": 1,        # Fetch first page
+        "offset": 10,     # Get 10 transactions (adjust as needed)
+        "sort": "desc",   # Sort transactions in descending order (latest first)
+        "apikey": POLYGONSCAN_API_KEY,
+    }
 
+    try:
+        response = requests.get(url, params=params)
+        data = response.json()
 
-if __name__ == "__main__":
-    num_accounts = 201  # ✅ Number of accounts to download
+        # Ensure 'result' is valid and contains transactions
+        if "result" in data and isinstance(data["result"], list) and len(data["result"]) > 0:
+            latest_tx = data["result"][0]  # Get the most recent transaction
 
-    DownloadCSV(num_accounts)
+            # Ensure 'timeStamp' key exists
+            if "timeStamp" in latest_tx:
+                timestamp = int(latest_tx["timeStamp"])  # Convert to integer
+                readable_date = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(timestamp))
+                return readable_date  # Return formatted date
+
+        return "No Transactions"
+
+    except requests.exceptions.RequestException as e:
+        print(f" API Error: {e}")
+        return "API Error"
+
+    except ValueError:
+        print(f" Unexpected API Response: {data}")
+        return "Invalid API Response"
+
+def get_top_with_transactions(N):
+    """
+    Get the top N addresses sorted by balance with their last transaction date.
+    """
+    top_accounts = get_top(N)
+    
+    # Fetch last transaction date for each address
+    top_accounts_with_tx = []
+    for address, balance in top_accounts:
+        last_tx_date = get_last_transaction_timestamp(address)
+        top_accounts_with_tx.append((address, balance, last_tx_date))
+
+    return top_accounts_with_tx
+

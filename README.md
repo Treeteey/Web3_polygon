@@ -32,7 +32,7 @@ This project is a Python-based application that interacts with the Polygon block
         ```
    - output: `0.01 TBY` OR `10000000000000000` if cant fetch data
   
-1. Get balance of several addresses:
+2. Get balance of several addresses:
    
    - Input: 
         ```sh
@@ -40,13 +40,7 @@ This project is a Python-based application that interacts with the Polygon block
         ```
    - Output: `[0.01, 0.01]` OR `[10000000000000000, 10000000000000000]`
   
-2. Get Top N token holders. This function searches for browser that can open url `https://polygonscan.com/accounts`. Launches browser, then downloads `.csv` tables in current directory in `top_accounts/` and process them.
 
-    - Input (N max is 10000):
-        ```sh
-        py main.py get_top {N}
-        ```  
-    - Output: `[(address_top_1, balance_top_1), (address_top_2, balance_top_2), (address_top_3, balance_top_3), ..., (address_top_N, balance_top_N)]`
 
 3. Get token info.
 
@@ -55,3 +49,20 @@ This project is a Python-based application that interacts with the Polygon block
         py main.py  get_token_info 0x1a9b54a3075119f1546c52ca0940551a6ce5d2d0
         ```
     - Output: `{'name': 'Storage Gastoken V3', 'symbol': 'TBY', 'decimals': 18, 'total_supply': 9761593039690880466978}`
+
+4. Get Top N token holders. This function searches for browser that can open url `https://polygonscan.com/accounts`. Launches browser, then downloads `.csv` tables in current directory in `top_accounts/` and process them.
+
+    - Input (N max is 10000):
+        ```sh
+        py main.py get_top {N}
+        ```  
+    - Output: `[(address_top_1, balance_top_1), (address_top_2, balance_top_2), (address_top_3, balance_top_3), ..., (address_top_N, balance_top_N)]`
+
+
+4. Get Top N  token holders with last transaction time. This function searches for browser that can open url `https://polygonscan.com/accounts`. Launches browser, then downloads `.csv` tables in current directory in `top_accounts/` and process them.
+
+    - Input (N max is 10000):
+        ```sh
+        py main.py get_top_with_transactions {N}
+        ```  
+    - Output: `[('0x0000000000000000000000000000000000001010', 7898712195.360736, '2025-03-02 22:51:43'), ('0x4c569c1e541a19132ac893748e0ad54c7c989ff4', 327522736.64326984, '2025-02-28 10:20:33'),...`

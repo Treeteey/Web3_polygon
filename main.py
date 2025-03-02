@@ -1,7 +1,8 @@
 import sys
 import json
 import get_balance
-from get_top import get_top
+from get_top import get_top, get_top_with_transactions
+from const import POLYGONSCAN_API_KEY
 
 
 def command_get_balance(args):
@@ -69,6 +70,19 @@ def command_get_token_info(args):
     token_info = get_balance.get_token_info(args[2])
     print(token_info)
 
+def command_get_top_with_transactions(args):
+    """Handles the 'get_top_with_transactions' command."""
+    if len(args) != 3:
+        print("Error: Please provide exactly one number for get_top_with_transactions command.")
+        return
+
+    try:
+        N = int(args[2])
+        top_accounts = get_top_with_transactions(N)
+        print(top_accounts)
+    except ValueError:
+        print("Error: Invalid number provided for get_top_with_transactions command.")
+
 
 def main():
     """Main function to handle command-line arguments."""
@@ -84,6 +98,7 @@ def main():
         "get_balance_batch": command_get_balance_batch,
         "get_top": command_get_top,
         "get_token_info": command_get_token_info,
+        "get_top_with_transactions": command_get_top_with_transactions,
     }
 
     if command in command_handlers:
