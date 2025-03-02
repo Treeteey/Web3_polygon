@@ -1,0 +1,6 @@
+Flask
+web3
+requests
+polygon-sdk
+selenium 
+webdriver-manager
