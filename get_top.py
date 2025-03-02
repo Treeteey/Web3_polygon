@@ -169,6 +169,11 @@ def DownloadCSV(num_accounts, pages=None):
                 latest_file = get_latest_csv(download_dir)
                 if latest_file:
                     new_filename = os.path.join(download_dir, f"export-accounts-{page}.csv")
+
+                    # ✅ Fix: Remove existing file before renaming
+                    if os.path.exists(new_filename):
+                        os.remove(new_filename)
+
                     os.rename(latest_file, new_filename)
                     print(f"✅ Renamed file to {new_filename}")
 
@@ -216,7 +221,10 @@ def get_top(N):
         print("🚀 No existing files found. Downloading fresh data...")
         DownloadCSV(N)
 
-    # ✅ Calculate how many pages are needed
+    # ✅ Refresh CSV list after downloading
+    csv_files = sorted([f for f in os.listdir(download_dir) if f.endswith(".csv")])
+
+    # ✅ Extract existing pages from fresh file list
     existing_pages = {int(f.split("-")[-1].split(".")[0]) for f in csv_files} if csv_files else set()
     required_pages = set(range(1, (N + 99) // 100 + 1))
 
@@ -261,6 +269,7 @@ def get_top(N):
     top_accounts = sorted(account_balances, key=lambda x: x[1], reverse=True)[:N]
 
     return top_accounts
+
 
 
 

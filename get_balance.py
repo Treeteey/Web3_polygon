@@ -57,7 +57,8 @@ erc20_abi = [
 token = w3.eth.contract(address=checksum_address, abi=erc20_abi)
 
 # Get token information
-def get_token_info():
+def get_token_info(address):
+    balance = token.functions.balanceOf(address).call()
     name = token.functions.name().call()
     symbol = token.functions.symbol().call()
     decimals = token.functions.decimals().call()
@@ -66,7 +67,8 @@ def get_token_info():
         "name": name,
         "symbol": symbol,
         "decimals": decimals,
-        "total_supply": total_supply
+        "total_supply": total_supply,
+        "balance": balance
     }
 
 # Get balance of a specific address
@@ -76,12 +78,13 @@ def get_balance(address):
         decimals = token.functions.decimals().call()
         symbol = token.functions.symbol().call()
     except Exception:
-        return WRONG_OUTPUT
+        return (WRONG_OUTPUT, "NOTOK")
     return (balance / (10 ** decimals), symbol)
 
 # Get balances of multiple addresses
 def get_balance_batch(addresses):
     balances_list = []
+    # print(addresses)
     for address in addresses:
         balance = get_balance(address)
         balances_list.append(balance[0])
