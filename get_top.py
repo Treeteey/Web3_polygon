@@ -6,6 +6,8 @@ import shutil  # Used for deleting the folder
 import csv
 import re  # Import regex module
 import requests
+import aiohttp
+import asyncio
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.firefox.service import Service as FirefoxService
@@ -267,9 +269,9 @@ def get_top(N):
                     print(f"⚠️ No valid number found in '{balance_str}'. Skipping...")
 
     # Sort by balance and return the top N
-    top_accounts = sorted(account_balances, key=lambda x: x[1], reverse=True)[:N]
+    # top_accounts = sorted(account_balances, key=lambda x: x[1], reverse=True)[:N]
 
-    return top_accounts
+    return account_balances[:N]
 
 
 def get_last_transaction_timestamp(address):
@@ -287,7 +289,7 @@ def get_last_transaction_timestamp(address):
         "startblock": 0,
         "endblock": 99999999,
         "page": 1,        # Fetch first page
-        "offset": 10,     # Get 10 transactions (adjust as needed)
+        "offset": 1,     # Get 1 transactions (adjust as needed)
         "sort": "desc",   # Sort transactions in descending order (latest first)
         "apikey": POLYGONSCAN_API_KEY,
     }
@@ -316,17 +318,26 @@ def get_last_transaction_timestamp(address):
         print(f" Unexpected API Response: {data}")
         return "Invalid API Response"
 
+
+
 def get_top_with_transactions(N):
     """
     Get the top N addresses sorted by balance with their last transaction date.
     """
     top_accounts = get_top(N)
+    total = len(top_accounts)  # ✅ Total addresses
     
-    # Fetch last transaction date for each address
     top_accounts_with_tx = []
-    for address, balance in top_accounts:
+
+    for count, (address, balance) in enumerate(top_accounts, start=1):
         last_tx_date = get_last_transaction_timestamp(address)
         top_accounts_with_tx.append((address, balance, last_tx_date))
+
+        # ✅ Dynamic progress update
+        sys.stdout.write(f"\rProcessing {count} / {total} addresses...")
+        sys.stdout.flush()
+
+    print("\n✅ All addresses processed!")  # ✅ Move to new line after completion
 
     return top_accounts_with_tx
 
