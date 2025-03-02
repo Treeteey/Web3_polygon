@@ -15,8 +15,7 @@ This project is a Python-based application that interacts with the Polygon block
 
 1. Clone the repository:
    ```sh
-   git clone git@github.com:<YourUsername>/<YourRepository>.git
-   cd <YourRepository>
+   git clone https://github.com/Treeteey/Web3_polygon.git
    ```
 
 2. `cd Web3_polygon`
@@ -27,20 +26,32 @@ This project is a Python-based application that interacts with the Polygon block
 
 1. Get balance of address:
    
-   - input: `py main.py get_balance 0x51f1774249Fc2B0C2603542Ac6184Ae1d048351d`
+   - input: 
+        ```
+        py main.py get_balance 0x51f1774249Fc2B0C2603542Ac6184Ae1d048351d
+        ```
    - output: `0.01 TBY` OR `10000000000000000` if cant fetch data
   
-2. Get balance of several addresses:
+1. Get balance of several addresses:
    
-   - Input: `py main.py get_balance_batch ["0x51f1774249Fc2B0C2603542Ac6184Ae1d048351d", "0x4830AF4aB9cd9E381602aE50f71AE481a7727f7C"]`
+   - Input: 
+        ```sh
+        py main.py get_balance_batch ["0x51f1774249Fc2B0C2603542Ac6184Ae1d048351d", "0x4830AF4aB9cd9E381602aE50f71AE481a7727f7C"]
+        ```
    - Output: `[0.01, 0.01]` OR `[10000000000000000, 10000000000000000]`
   
-3. Get Top N token holders. This function searches for browser that can open url `https://polygonscan.com/accounts`. Launches browser, then downloads `.csv` tables in current directory in `top_accounts/` and process them.
+2. Get Top N token holders. This function searches for browser that can open url `https://polygonscan.com/accounts`. Launches browser, then downloads `.csv` tables in current directory in `top_accounts/` and process them.
 
-    - Input: `py main.py get_top {N}`  (N max is 10000)
+    - Input (N max is 10000):
+        ```sh
+        py main.py get_top {N}
+        ```  
     - Output: `[(address_top_1, balance_top_1), (address_top_2, balance_top_2), (address_top_3, balance_top_3), ..., (address_top_N, balance_top_N)]`
 
-4. Get token info.
+3. Get token info.
 
-    - Input: `py main.py  get_token_info 0x1a9b54a3075119f1546c52ca0940551a6ce5d2d0`
+    - Input: 
+        ```
+        py main.py  get_token_info 0x1a9b54a3075119f1546c52ca0940551a6ce5d2d0
+        ```
     - Output: `{'name': 'Storage Gastoken V3', 'symbol': 'TBY', 'decimals': 18, 'total_supply': 9761593039690880466978}`
