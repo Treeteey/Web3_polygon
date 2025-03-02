@@ -274,70 +274,65 @@ def get_top(N):
     return account_balances[:N]
 
 
-def get_last_transaction_timestamp(address):
-    """Fetch the timestamp of the last transaction for a given address from PolygonScan."""
-    
-    if not POLYGONSCAN_API_KEY:
-        raise ValueError("Please add your POLYGONSCAN_API_KEY key in const.py file.")
+
+async def fetch_last_tx(session, address):
+    """Asynchronously fetch the latest transaction timestamp for an address."""
     
     url = "https://api.polygonscan.com/api"
-    
     params = {
         "module": "account",
         "action": "txlist",
         "address": address,
         "startblock": 0,
         "endblock": 99999999,
-        "page": 1,        # Fetch first page
-        "offset": 1,     # Get 1 transactions (adjust as needed)
-        "sort": "desc",   # Sort transactions in descending order (latest first)
+        "page": 1,
+        "offset": 1,  # ✅ Fetch only the latest transaction
+        "sort": "desc",
         "apikey": POLYGONSCAN_API_KEY,
     }
 
     try:
-        response = requests.get(url, params=params)
-        data = response.json()
+        async with session.get(url, params=params) as response:
+            data = await response.json()
 
-        # Ensure 'result' is valid and contains transactions
-        if "result" in data and isinstance(data["result"], list) and len(data["result"]) > 0:
-            latest_tx = data["result"][0]  # Get the most recent transaction
+            # ✅ Ensure valid data format
+            if "result" in data and isinstance(data["result"], list) and len(data["result"]) > 0:
+                latest_tx = data["result"][0]  # ✅ Get the most recent transaction
+                timestamp = int(latest_tx["timeStamp"])
+                return time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(timestamp))
 
-            # Ensure 'timeStamp' key exists
-            if "timeStamp" in latest_tx:
-                timestamp = int(latest_tx["timeStamp"])  # Convert to integer
-                readable_date = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(timestamp))
-                return readable_date  # Return formatted date
+    except Exception as e:
+        print(f"❌ API Error for {address}: {e}")
+    
+    return "No Transactions"
 
-        return "No Transactions"
 
-    except requests.exceptions.RequestException as e:
-        print(f" API Error: {e}")
-        return "API Error"
-
-    except ValueError:
-        print(f" Unexpected API Response: {data}")
-        return "Invalid API Response"
-
+async def fetch_all_last_tx(addresses):
+    """Fetch latest transaction timestamps for multiple addresses in parallel."""
+    
+    async with aiohttp.ClientSession() as session:
+        tasks = [fetch_last_tx(session, address) for address in addresses]
+        return await asyncio.gather(*tasks)  # ✅ Run all requests concurrently
 
 
 def get_top_with_transactions(N):
     """
-    Get the top N addresses sorted by balance with their last transaction date.
+    Get the top N addresses sorted by balance with their last transaction date (FAST!).
     """
     top_accounts = get_top(N)
-    total = len(top_accounts)  # ✅ Total addresses
+    total = len(top_accounts)
+
+    addresses = [address for address, _ in top_accounts]  # ✅ Extract addresses
     
-    top_accounts_with_tx = []
+    # ✅ Fetch last transaction timestamps asynchronously
+    last_tx_dates = asyncio.run(fetch_all_last_tx(addresses))
 
-    for count, (address, balance) in enumerate(top_accounts, start=1):
-        last_tx_date = get_last_transaction_timestamp(address)
-        top_accounts_with_tx.append((address, balance, last_tx_date))
+    # ✅ Combine results
+    top_accounts_with_tx = [
+        (address, balance, last_tx) for (address, balance), last_tx in zip(top_accounts, last_tx_dates)
+    ]
 
-        # ✅ Dynamic progress update
-        sys.stdout.write(f"\rProcessing {count} / {total} addresses...")
-        sys.stdout.flush()
-
-    print("\n✅ All addresses processed!")  # ✅ Move to new line after completion
-
+    print("\n✅ All addresses processed!")
     return top_accounts_with_tx
+
 
