@@ -274,6 +274,10 @@ def get_top(N):
 
 def get_last_transaction_timestamp(address):
     """Fetch the timestamp of the last transaction for a given address from PolygonScan."""
+    
+    if not POLYGONSCAN_API_KEY:
+        raise ValueError("Please add your POLYGONSCAN_API_KEY key in const.py file.")
+    
     url = "https://api.polygonscan.com/api"
     
     params = {
