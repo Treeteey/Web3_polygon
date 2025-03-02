@@ -5,13 +5,12 @@ from const import WRONG_OUTPUT, INFURA_API, CONTRACT_ADDRESS
 
 def CreateToken():
     # Connect to Polygon network via Infura
-    # ADD YOUR INFURA API KEY HERE
-
+    if INFURA_API == '':
+        raise ValueError("Please add your Infura API key in const.py file.")
+    
     infura_url = f'https://polygon-mainnet.infura.io/v3/{INFURA_API}'
     w3 = Web3(Web3.HTTPProvider(infura_url))
-
-    # Token contract address
-    
+ 
     checksum_address = Web3.to_checksum_address(CONTRACT_ADDRESS)
 
     # Generic ERC20 ABI
